@@ -1,0 +1,25 @@
+- hosts: localhost
+  connection: local
+  vars:
+    current_user: "{{ lookup('env','USER') }}"
+  tasks:
+  - name: Ensure OpenSSH is installed
+    ansible.builtin.package:
+      name: openssh
+    become: true
+
+  - name: Generate an SSH key for the current user
+    ansible.builtin.user:
+      generate_ssh_key: yes
+      name: "{{ current_user }}"
+    register: keygen
+
+  - name: restart_sshd
+    service:
+      name: sshd
+      state: restarted
+    become: true
+
+  - name: Display generated PUBLIC key
+    debug:
+      var: keygen.ssh_public_key
